@@ -1,0 +1,7 @@
+{"timestamp":"2026-11-14T10:00:00.000Z","service":"telemetry-writer","level":"ERROR","line":"[disk] ENOSPC: No space left on device writing /metrics/2026-11-14.bin (tmpfs 1MB cap)"}
+{"timestamp":"2026-11-14T10:00:00.005Z","service":"telemetry-writer","level":"WARN","line":"[http] POST /metrics/ingest -> 503 (upstream write failed, latency=214ms)"}
+{"timestamp":"2026-11-14T10:00:00.030Z","service":"routing-engine","level":"INFO","line":"[jvm] GC pause 42ms (young gen) — within SLO"}
+{"timestamp":"2026-11-14T10:00:00.040Z","service":"api-gateway","level":"WARN","line":"[pool] worker pool exhausted: 64/64 threads blocked on telemetry-writer retry, queue=1024"}
+{"timestamp":"2026-11-14T10:00:00.045Z","service":"routing-engine","level":"WARN","line":"[net] TCP retransmits 2.1% on eth0"}
+{"timestamp":"2026-11-14T10:00:00.100Z","service":"client-simulator","level":"ERROR","line":"[retry] POST /routes timed out after 2000ms (attempt 3/5), storm=480 req/s"}
+{"timestamp":"2026-11-14T10:00:00.000Z","service":"auth-service","level":"INFO","line":"[deploy] rolling deploy v2.4.1 complete (canary=100%)"}
