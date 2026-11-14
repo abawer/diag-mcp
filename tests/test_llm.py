@@ -104,3 +104,40 @@ def test_citation_requirement_is_in_system_prompt() -> None:
     import mcp_server.llm as llm_mod
     assert "verbatim" in llm_mod.SYSTEM_PROMPT
     assert "insufficient_evidence" in llm_mod.SYSTEM_PROMPT
+
+
+def test_system_prompt_embeds_full_json_schema() -> None:
+    """The LLM must be given the actual schema, not just told its name."""
+    import mcp_server.llm as llm_mod
+    # Every RCAReport field name must appear in the prompt, derived from the schema
+    # the model is actually shown — not from a hand-maintained copy that can drift.
+    for field in {"root_cause", "evidence", "timeline", "fix", "confidence",
+                  "insufficient_evidence", "unrelated_findings"}:
+        assert field in llm_mod.SYSTEM_PROMPT, f"schema field {field!r} missing from prompt"
+    for nested in {"service", "timestamp", "raw_line", "role", "dry_run_command",
+                   "diff_summary", "requires_hitl_approval"}:
+        assert nested in llm_mod.SYSTEM_PROMPT, f"nested field {nested!r} missing from prompt"
+    # The embedded schema must be the same schema the response is validated against.
+    # (It uses $ref/$defs, so compare the object, not a re-serialized string.)
+    embedded = json_mod.loads(
+        llm_mod.SYSTEM_PROMPT.split("Output ONLY a single JSON object", 1)[1]
+        .split("\n\n", 1)[1]
+    )
+    assert embedded == llm_mod.RCA_JSON_SCHEMA
+    assert llm_mod.RCA_JSON_SCHEMA["title"] == "RCAReport"
+
+
+def test_request_payload_carries_structured_output_config(monkeypatch) -> None:
+    """The request offers structured-output config, not just prompt prose."""
+    monkeypatch.setattr(config, "ANTHROPIC_API_KEY", "test-key")
+    captured = {}
+
+    def fake_post(self, url, json=None, headers=None):
+        captured["payload"] = json
+        return _Response({"content": [{"type": "text", "text": json_mod.dumps(_valid_report())}]})
+
+    monkeypatch.setattr("mcp_server.llm.httpx.Client.post", fake_post)
+    analyze_crash_llm("excerpt", _topo().model_dump(), _os().model_dump())
+
+    assert captured["payload"]["output_config"]["json_schema"]["title"] == "RCAReport"
+    assert "properties" in captured["payload"]["output_config"]["json_schema"]

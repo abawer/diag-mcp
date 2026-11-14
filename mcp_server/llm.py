@@ -16,7 +16,11 @@ from .models import AnalyzeCrashInput, RCAReport
 
 API_URL = "https://api.anthropic.com/v1/messages"
 
-SYSTEM_PROMPT = """\
+# Generated from the same Pydantic model the response is validated against, so the
+# schema the LLM sees can never drift from the client-side contract.
+RCA_JSON_SCHEMA: dict = RCAReport.model_json_schema()
+
+_SYSTEM_PROMPT_TEMPLATE = """\
 You are a root-cause analysis engine. Given a log excerpt, a service topology graph,
 and an OS resource report, produce a diagnosis.
 
@@ -30,7 +34,12 @@ Hard rules:
    never folded into root_cause.
 5. The fix must be a dry-run command/diff only; state requires_hitl_approval=true.
 
-Output ONLY the JSON matching the RCAReport schema."""
+Output ONLY a single JSON object matching EXACTLY this JSON schema — no markdown
+fences, no prose, no commentary:
+
+{schema}"""
+
+SYSTEM_PROMPT = _SYSTEM_PROMPT_TEMPLATE.format(schema=json.dumps(RCA_JSON_SCHEMA))
 
 
 def analyze_crash_llm(log_excerpt: str, topology: dict, os_report: dict) -> RCAReport:
@@ -53,6 +62,9 @@ def analyze_crash_llm(log_excerpt: str, topology: dict, os_report: dict) -> RCAR
             }
         ],
     }
+    # Belt-and-braces: the schema rides in the system prompt above, and here it is
+    # also offered as a structured-output hint for clients that honor it.
+    payload["output_config"] = {"json_schema": RCA_JSON_SCHEMA}
 
     headers = {
         "x-api-key": config.ANTHROPIC_API_KEY,
