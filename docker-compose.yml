@@ -1,0 +1,10 @@
+services:
+  diag-mcp:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - DIAG_MCP_MODEL=${DIAG_MCP_MODEL:-claude-sonnet-5-5}
+      - DIAG_MCP_LLM_TIMEOUT_S=${DIAG_MCP_LLM_TIMEOUT_S:-60}
+    restart: unless-stopped

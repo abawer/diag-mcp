@@ -1,0 +1,22 @@
+{
+  "telemetry-writer": {
+    "disk": {"mount": "/metrics (tmpfs)", "size": "1.0M", "used": "100%", "avail": "0"},
+    "memory": {"total_mb": 512, "used_mb": 210, "ok": true},
+    "kernel_alerts": ["ENOSPC: No space left on device writing /metrics/2026-11-14.bin"]
+  },
+  "auth-service": {
+    "disk": {"mount": "/", "size": "50G", "used": "12%", "avail": "44G"},
+    "memory": {"total_mb": 2048, "used_mb": 480, "ok": true},
+    "kernel_alerts": []
+  },
+  "routing-engine": {
+    "disk": {"mount": "/", "size": "50G", "used": "31%", "avail": "34G"},
+    "memory": {"total_mb": 4096, "used_mb": 1900, "ok": true},
+    "kernel_alerts": []
+  },
+  "api-gateway": {
+    "disk": {"mount": "/", "size": "50G", "used": "22%", "avail": "39G"},
+    "memory": {"total_mb": 1024, "used_mb": 700, "ok": true},
+    "kernel_alerts": []
+  }
+}
