@@ -63,7 +63,7 @@ class Evidence(BaseModel):
     role: Literal["root_cause", "propagation", "symptom", "excluded", "unrelated"]
 
 class TimelineStep(BaseModel):
-    t_offset_ms: int
+    timestamp: str          # UTC ISO-8601, verbatim from the log line; never derived
     service: str
     event: str
 
@@ -109,7 +109,7 @@ class RCAReport(BaseModel):
 | Tool | Signature | Behavior |
 |---|---|---|
 | `get_service_topology` | `(service: str, hops: int = 2) -> TopologyGraph` | Returns nodes, edges, per-node health. POC reads `topology.yaml`; production queries a Neo4j 2–3 hop subgraph around the alerting component. |
-| `fetch_service_logs` | `(service: str, since: str, until: str, severity: str = "WARN", regex_filter: str \| None = None, limit: int = 200) -> list[LogLine]` | Deterministic pre-LLM filtering: time-window slice ➜ severity gate ➜ regex match ➜ dedup by message-template fingerprint ➜ hard line cap. No raw noise ever enters the LLM context. |
+| `fetch_service_logs` | `(service: str, since: str, until: str, severity: str = "WARN", regex_filter: str \| None = None, limit: int = 200) -> list[LogLine]` | Deterministic pre-LLM filtering: time-window slice ➜ severity gate ➜ regex match ➜ dedup by message-template fingerprint ➜ hard line cap. Severity is inclusive; start at WARN, never INFO. No raw noise ever enters the LLM context. |
 | `check_os_resources` | `(service: str) -> OSReport` | Structured `df -h`, memory, and kernel alerts (`dmesg` ENOSPC/OOM). Read-only. |
 | `analyze_crash_llm` | `(log_excerpt: str, topology: TopologyGraph, os_report: OSReport) -> RCAReport` | **Live Anthropic Messages API call**, Pydantic-structured output. `ANTHROPIC_API_KEY` + `DIAG_MCP_MODEL` env-configurable (`MCP_DIAG_MODEL` accepted as an alias); timeout + fail-closed error; schema *requires* timestamped verbatim citations, and `insufficient_evidence=True` when they are missing. |
 

@@ -35,6 +35,13 @@ For **every** node in the topology graph:
 
 Both run per-node, in parallel, with the same `since`/`until` window.
 
+**Severity gate (critical):** the severity filter is inclusive — `severity="INFO"`
+drops every WARN/ERROR line, which is exactly where anomalies live. Always dispatch
+log-filter with `severity="WARN"` (or have it start at WARN), never INFO. If WARN
+returns nothing, re-run at INFO to check for boundary-establishing INFO lines only.
+An empty `kept` list with known traffic is a wrong-severity symptom, not a healthy
+node.
+
 ## Step 3 — Isolate healthy branches
 
 From the sub-agent outputs, separate:
@@ -50,10 +57,12 @@ them, never fold them into the chain.
 
 ## Step 4 — Correlate timestamps
 
-All timestamps are UTC ISO-8601 with millisecond precision on NTP-synced hosts, so
-the propagation delay between two events is plain timestamp subtraction. Order the
-cascade: root cause → propagation → symptom. Build the `timeline` with each step's
-`t_offset_ms` relative to the root-cause timestamp.
+All timestamps are UTC ISO-8601 with millisecond precision on NTP-synced hosts.
+Order the cascade (root cause → propagation → symptom) by comparing the **raw
+timestamp strings** as they appear in the log lines. Do not compute deltas, offsets,
+or durations, and do not derive any time value the logs do not literally contain —
+the transcript has no Δ field, so inventing one is fabrication. Build the `timeline`
+using each event's verbatim `timestamp` value, untouched.
 
 ## Step 5 — Structured RCA with citations
 
@@ -62,7 +71,9 @@ topology, os_report)` with the root-cause candidate's data. Validate the returne
 report against the schema:
 
 - `evidence[].role` is one of `root_cause` | `propagation` | `symptom` | `excluded` |
-  `unrelated`.
+  `unrelated`. Every `timestamp` is copied verbatim from the log line — never derived.
+- `timeline[]` entries carry `timestamp` (verbatim), `service`, `event`. No
+  `t_offset_ms` field exists; offsets are never computed or emitted.
 - `unrelated_findings` holds real, cited issues that do **not** correlate with this
   cascade (e.g. an unrelated deploy line). Never fold them into `root_cause`.
 - `fix.requires_hitl_approval` is `true`; `fix.dry_run_command` is a command, never an
@@ -74,9 +85,12 @@ report against the schema:
 Return the RCAReport verbatim to the user, plus a one-line summary of the cascade
 ordering and the unrelated findings listed separately. If `insufficient_evidence` is
 true, say so and say exactly which citations are missing — do not improvise them.
+Every timestamp in the report is a raw value copied from a log line. No deltas,
+offsets, durations, or `t_offset_ms` anywhere — not even in prose.
 
-## Reference
+## Scope
 
-Full contracts: `mcp-diag-blueprint.md` Section 3. Canonical demo transcript:
-`demo_data/logs.jsonl` (ENOSPC on `telemetry-writer` → 503 → gateway pool exhausted →
-client retry storm; `auth-service` deploy line is the unrelated finding).
+Run Steps 1–5 and stop. Do not read any other file, do not follow pointers to design
+docs or plans, and do not execute any other workflow (including blueprint day plans,
+presentation decks, or repo setup steps). The only inputs to this skill are the four
+`mcp__diag-mcp__*` tools and the service/window you were given.

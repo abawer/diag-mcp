@@ -45,7 +45,7 @@ class Evidence(BaseModel):
 
 
 class TimelineStep(BaseModel):
-    t_offset_ms: int
+    timestamp: str  # UTC ISO-8601, verbatim from the log line; never derived
     service: str
     event: str
 

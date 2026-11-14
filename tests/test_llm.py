@@ -32,7 +32,7 @@ def _valid_report() -> dict:
                       "timestamp": "2026-11-14T10:00:00.000Z",
                       "raw_line": "[disk] ENOSPC: No space left on device",
                       "role": "root_cause"}],
-        "timeline": [{"t_offset_ms": 0, "service": "telemetry-writer", "event": "ENOSPC"}],
+        "timeline": [{"timestamp": "2026-11-14T10:00:00.000Z", "service": "telemetry-writer", "event": "ENOSPC"}],
         "fix": {"dry_run_command": "kubectl ...", "diff_summary": "..."},
         "confidence": 0.9,
         "unrelated_findings": [],

@@ -19,7 +19,7 @@ Topology-aware RCA diagnostics agent: Claude Code + a centralized Web MCP server
   `analyze_crash_llm` (live Anthropic API; needs `ANTHROPIC_API_KEY`).
 - `topology.yaml` — POC topology source of truth.
 - `demo_data/` — canonical log transcript + topology fixture.
-- `.claude/skills/diagnose/SKILL.md`, `.claude/agents/*.md` — Day 3 (not yet created).
+- `.claude/skills/diagnose/SKILL.md`, `.claude/agents/*.md` — Day 3 RCA workflow + sub-agents.
 
 ## Coding standards
 - Python 3.12, Pydantic v2, `ruff` clean, type hints everywhere.
