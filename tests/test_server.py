@@ -7,16 +7,35 @@ TextContent with a JSON string in .text.
 
 from __future__ import annotations
 
+import inspect
 import json
 
 import pytest
 
 from mcp_server.server import mcp
+from mcp_server.server import (analyze_crash_llm as _analyze_crash_llm,
+                               check_os_resources as _check_os_resources,
+                               fetch_service_logs as _fetch_service_logs,
+                               get_service_topology as _get_service_topology)
 
 
 async def _call(name: str, args: dict) -> dict:
     r = await mcp.call_tool(name, args)
     return json.loads(r.content[0].text)
+
+
+def test_tool_signatures_match_blueprint_section_3() -> None:
+    """Blueprint Section 3 pins each tool's exact signature; drift breaks agents."""
+    assert str(inspect.signature(_get_service_topology)) == \
+        "(service: 'str', hops: 'int' = 2) -> 'TopologyGraph'"
+    assert str(inspect.signature(_fetch_service_logs)) == (
+        "(service: 'str', since: 'str', until: 'str', severity: 'str' = 'WARN', "
+        "regex_filter: 'str | None' = None, limit: 'int' = 200) -> 'list'"
+    )
+    assert str(inspect.signature(_check_os_resources)) == "(service: 'str') -> 'OSReport'"
+    assert str(inspect.signature(_analyze_crash_llm)) == (
+        "(log_excerpt: 'str', topology: 'dict', os_report: 'dict') -> 'RCAReport'"
+    )
 
 
 @pytest.mark.asyncio

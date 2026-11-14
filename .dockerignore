@@ -4,5 +4,9 @@ __pycache__
 *.pyc
 .env
 *.md
-demo_data
 tests
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.egg-info
+.deps
