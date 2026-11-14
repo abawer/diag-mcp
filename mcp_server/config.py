@@ -8,7 +8,7 @@ from pathlib import Path
 ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY", "")
 DEFAULT_MODEL : str = "openrouter/free"
 DIAG_MCP_MODEL: str = (
-    os.environ.get("MCP_DIAG_MODEL")
+    os.environ.get("DIAG_MCP_MODEL")
     or DEFAULT_MODEL
 )
 
