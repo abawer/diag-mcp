@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "services": {
+    "api-gateway": {
+      "kind": "gateway",
+      "downstream": [
+        "auth-service",
+        "routing-engine",
+        "telemetry-writer"
+      ],
+      "notes": "Shares one fixed worker thread pool across all routes; retries telemetry-writer."
+    },
+    "auth-service": {
+      "kind": "service",
+      "downstream": [],
+      "notes": "No downstream dependencies."
+    },
+    "routing-engine": {
+      "kind": "service",
+      "downstream": [],
+      "notes": "No downstream dependencies."
+    },
+    "telemetry-writer": {
+      "kind": "service",
+      "downstream": [
+        "nvme-tmpfs"
+      ],
+      "notes": "Writes metrics to a 1MB tmpfs cap."
+    },
+    "nvme-tmpfs": {
+      "kind": "storage",
+      "downstream": [],
+      "notes": "Docker tmpfs mount capped at 1MB."
+    },
+    "client-simulator": {
+      "kind": "client",
+      "downstream": [
+        "api-gateway"
+      ],
+      "notes": "Generates load."
+    }
+  }
+}

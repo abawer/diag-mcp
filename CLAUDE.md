@@ -17,7 +17,10 @@ Topology-aware RCA diagnostics agent: Claude Code + a centralized Web MCP server
 - `mcp_server/` — FastMCP server (streamable-http, port 8000), Dockerized.
   Tools: `get_service_topology`, `fetch_service_logs`, `check_os_resources`,
   `analyze_crash_llm` (live Anthropic API; needs `ANTHROPIC_API_KEY`).
-- `topology.yaml` — POC topology source of truth.
+- `topology.json` — POC topology source of truth. Node `notes` describe static
+  architecture only (thread pools, mount caps, call patterns) — never the
+  incident. Notes must not leak the root cause or which nodes are healthy;
+  the RCA has to derive that from cited evidence.
 - `demo_data/` — canonical log transcript + topology fixture.
 - `.claude/skills/diagnose/SKILL.md`, `.claude/agents/*.md` — Day 3 RCA workflow + sub-agents.
 

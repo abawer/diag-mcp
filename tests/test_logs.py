@@ -98,3 +98,25 @@ def test_empty_window_returns_empty(tmp_logs) -> None:
     got = fetch_service_logs("telemetry-writer", since="2025-01-01T00:00:00.000Z",
                              until="2025-01-02T00:00:00.000Z")
     assert got == []
+
+
+def test_omitted_window_scans_whole_transcript(tmp_logs) -> None:
+    """No since/until: the severity gate still surfaces the most recent ERR/WARN lines."""
+    got = fetch_service_logs("telemetry-writer", severity="DEBUG")
+    assert len(got) == 2  # ENOSPC ERROR + 503 WARN — full transcript, no time bound
+
+
+def test_since_only_bounds_the_past(tmp_logs) -> None:
+    got = fetch_service_logs("telemetry-writer", since="2026-11-14T10:00:00.001Z", severity="DEBUG")
+    assert len(got) == 1 and got[0].level == "WARN"
+
+
+def test_until_only_bounds_the_future(tmp_logs) -> None:
+    got = fetch_service_logs("telemetry-writer", until="2026-11-14T10:00:00.001Z", severity="DEBUG")
+    assert len(got) == 1 and got[0].level == "ERROR"
+
+
+def test_omitted_window_returns_most_recent_err_warn(tmp_logs) -> None:
+    """Default severity gate + no window: newest ERROR/WARN across the transcript."""
+    got = fetch_service_logs("api-gateway")
+    assert len(got) == 1 and "worker pool exhausted" in got[0].line

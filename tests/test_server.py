@@ -29,8 +29,8 @@ def test_tool_signatures_match_blueprint_section_3() -> None:
     assert str(inspect.signature(_get_service_topology)) == \
         "(service: 'str', hops: 'int' = 2) -> 'TopologyGraph'"
     assert str(inspect.signature(_fetch_service_logs)) == (
-        "(service: 'str', since: 'str', until: 'str', severity: 'str' = 'WARN', "
-        "regex_filter: 'str | None' = None, limit: 'int' = 200) -> 'list'"
+        "(service: 'str', since: 'str | None' = None, until: 'str | None' = None, "
+        "severity: 'str' = 'WARN', regex_filter: 'str | None' = None, limit: 'int' = 200) -> 'list'"
     )
     assert str(inspect.signature(_check_os_resources)) == "(service: 'str') -> 'OSReport'"
     assert str(inspect.signature(_analyze_crash_llm)) == (

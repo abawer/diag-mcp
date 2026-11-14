@@ -5,7 +5,7 @@ Web MCP server. See [mcp-diag-blueprint.md](mcp-diag-blueprint.md) for the full 
 
 ## Day-1 components
 - `mcp_server/` — FastMCP server (streamable-http, port 8000), 4 read-only tools.
-- `topology.yaml` / `demo_data/` — POC topology + canonical log/OS fixtures.
+- `topology.json` / `demo_data/` — POC topology + canonical log/OS fixtures.
 - `Dockerfile` / `docker-compose.yml` — containerized server.
 - `CLAUDE.md` — guardrails: read-only, citations, HITL, unrelated-findings rule.
 

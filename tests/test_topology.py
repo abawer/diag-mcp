@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 
 from mcp_server.topology import get_service_topology
@@ -36,3 +39,22 @@ def test_hops_may_be_negative(tmp_topology) -> None:
     # max(hops, 0) guards it: behaves like 0 hops rather than exploding.
     g = get_service_topology("auth-service", hops=-3)
     assert [n.name for n in g.nodes] == ["auth-service"]
+
+
+# Notes must describe static architecture, never the incident — the RCA has to
+# derive root cause and node health from cited evidence, not from topology metadata.
+_GIVEAWAY_PATTERNS = ("root cause", "demo incident", "symptom", "healthy")
+
+_TOPOLOGY = json.loads(Path("demo_data/topology.json").read_text(encoding="utf-8"))
+_SERVICES = list(_TOPOLOGY["services"])
+
+
+@pytest.mark.parametrize("service", _SERVICES)
+def test_notes_contain_no_incident_conclusions(tmp_topology, service) -> None:
+    g = get_service_topology(service, hops=2)
+    for node in g.nodes:
+        for pattern in _GIVEAWAY_PATTERNS:
+            assert pattern not in node.notes.lower(), (
+                f"note for {node.name!r} leaks incident conclusion: {node.notes!r}"
+            )
+

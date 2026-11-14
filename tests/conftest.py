@@ -33,7 +33,7 @@ def tmp_logs(tmp_path: Path, log_lines: list[LogLine], monkeypatch) -> Path:
 @pytest.fixture
 def tmp_topology(tmp_path: Path, monkeypatch) -> Path:
     """A topology fixture; re-points config.TOPOLOGY_PATH at it."""
-    path = tmp_path / "topology.yaml"
-    path.write_text((DEMO_DATA / "topology.yaml").read_text(encoding="utf-8"), encoding="utf-8")
+    path = tmp_path / "topology.json"
+    path.write_text((DEMO_DATA / "topology.json").read_text(encoding="utf-8"), encoding="utf-8")
     monkeypatch.setattr(config, "TOPOLOGY_PATH", str(path))
     return path

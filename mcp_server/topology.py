@@ -1,13 +1,12 @@
-"""get_service_topology: deterministic graph read from topology.yaml.
+"""get_service_topology: deterministic graph read from topology.json.
 
 POC reads the YAML file; production swaps this for a Neo4j 2-3 hop subgraph query.
 """
 
 from __future__ import annotations
 
+import json
 from functools import lru_cache
-
-import yaml
 
 from . import config
 from .models import TopologyGraph, TopologyNode
@@ -16,13 +15,13 @@ from .models import TopologyGraph, TopologyNode
 @lru_cache(maxsize=1)
 def _load_topology(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        return json.load(f)
 
 
 def get_service_topology(service: str, hops: int = 2) -> TopologyGraph:
     """Return the dependency subgraph around `service`, up to `hops` edges deep.
 
-    POC source: topology.yaml. Production source: Neo4j subgraph query.
+    POC source: topology.json. Production source: Neo4j subgraph query.
     """
     data = _load_topology(config.TOPOLOGY_PATH)
     services: dict = data["services"]

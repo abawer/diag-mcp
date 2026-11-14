@@ -9,7 +9,7 @@ The project demonstrates how an autonomous AI coding agent can diagnose complex,
 ### Concepts Covered
 * **Agentic Coding Workflows:** Built and orchestrated using **Claude Code**, `CLAUDE.md`, custom `SKILL.md` workflows, and specialized **Sub-agents** (`.claude/agents/`).
 * **Model Context Protocol (MCP):** Centralized Web MCP server (`streamable-http` transport) packaged in **Docker**.
-* **Topology-Aware Reasoning:** Exposing system architecture (`topology.yaml` in POC; Neo4j Graph DB in production) as a deterministic tool before log inspection.
+* **Topology-Aware Reasoning:** Exposing system architecture (`topology.json` in POC; Neo4j Graph DB in production) as a deterministic tool before log inspection.
 * **LLM Integration & Prompt Engineering:** Structured outputs via **Pydantic**, XML context isolation, and evidence-grounded citations.
 * **Production Readiness:** Read-only guardrails, human-in-the-loop approvals, trajectory tracing, and automated regression evaluations (Evals).
 
@@ -108,8 +108,8 @@ class RCAReport(BaseModel):
 
 | Tool | Signature | Behavior |
 |---|---|---|
-| `get_service_topology` | `(service: str, hops: int = 2) -> TopologyGraph` | Returns nodes, edges, per-node health. POC reads `topology.yaml`; production queries a Neo4j 2–3 hop subgraph around the alerting component. |
-| `fetch_service_logs` | `(service: str, since: str, until: str, severity: str = "WARN", regex_filter: str \| None = None, limit: int = 200) -> list[LogLine]` | Deterministic pre-LLM filtering: time-window slice ➜ severity gate ➜ regex match ➜ dedup by message-template fingerprint ➜ hard line cap. Severity is inclusive; start at WARN, never INFO. No raw noise ever enters the LLM context. |
+| `get_service_topology` | `(service: str, hops: int = 2) -> TopologyGraph` | Returns nodes, edges, per-node health. POC reads `topology.json`; production queries a Neo4j 2–3 hop subgraph around the alerting component. Node `notes` describe static architecture only (thread pools, mount caps, call patterns) — never the incident; the RCA must derive root cause and node health from cited evidence, not from topology metadata. |
+| `fetch_service_logs` | `(service: str, since: str \| None = None, until: str \| None = None, severity: str = "WARN", regex_filter: str \| None = None, limit: int = 200) -> list[LogLine]` | Deterministic pre-LLM filtering: time-window slice ➜ severity gate ➜ regex match ➜ dedup by message-template fingerprint ➜ hard line cap. `since`/`until` are optional UTC ISO-8601 bounds; if omitted, no time bound is applied and the whole transcript is scanned, surfacing the most recent ERR/WARN lines. Severity is inclusive; start at WARN, never INFO. No raw noise ever enters the LLM context. |
 | `check_os_resources` | `(service: str) -> OSReport` | Structured `df -h`, memory, and kernel alerts (`dmesg` ENOSPC/OOM). Read-only. |
 | `analyze_crash_llm` | `(log_excerpt: str, topology: TopologyGraph, os_report: OSReport) -> RCAReport` | **Live Anthropic Messages API call**, Pydantic-structured output. `ANTHROPIC_API_KEY` + `DIAG_MCP_MODEL` env-configurable (`MCP_DIAG_MODEL` accepted as an alias); timeout + fail-closed error; schema *requires* timestamped verbatim citations, and `insufficient_evidence=True` when they are missing. |
 
@@ -151,7 +151,7 @@ All tools are **read-only by default**. Any fix ships as a dry-run command/diff 
 
 ## 5. 4-Day Execution Plan
 
-* **Day 1 – Environment & MCP Server:** Set up the `diag-mcp` repository, `CLAUDE.md`, `topology.yaml`, and the Dockerized `FastMCP` HTTP server. Verify tool discovery via `claude mcp list` and `/mcp`.
+* **Day 1 – Environment & MCP Server:** Set up the `diag-mcp` repository, `CLAUDE.md`, `topology.json`, and the Dockerized `FastMCP` HTTP server. Verify tool discovery via `claude mcp list` and `/mcp`.
 * **Day 2 – Mini-Lab & Fault Injection:** Create a lightweight `docker-compose.yml` (`api-gateway`, `routing-engine`, `telemetry-writer` with a `1MB tmpfs` mount) and trigger the cascading `ENOSPC` failure. *(Requires a Docker daemon; not runnable in restricted sandboxes.)* POC note: `demo_data/` holds the canonical fixtures instead.
 * **Day 3 – Sub-agents & Skills:** Implement `.claude/skills/diagnose/SKILL.md`, `.claude/agents/log-filter.md`, and `.claude/agents/config-auditor.md` per the contracts in Section 3. Run end-to-end diagnostics against the canonical transcript (asserting the unrelated-findings path: the `auth-service` deploy line is reported as `unrelated`, not folded into the cascade), capture terminal traces, and refine failure modes.
 * **Day 4 – Presentation Deck:** Build a concise 6–8 slide presentation covering the architecture, Claude Code development workflow, real failure-mode tuning, and enterprise rollout strategy.

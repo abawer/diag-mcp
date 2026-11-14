@@ -14,8 +14,10 @@ requires explicit human approval (HITL), always.
 ## Inputs to ask for
 
 - `service` — the alerting component (e.g. `api-gateway`).
-- `since` / `until` — UTC ISO-8601 window with millisecond precision
-  (e.g. `2026-11-14T10:00:00.000Z`). Default to the last hour if unsure.
+- `since` / `until` — optional UTC ISO-8601 window bounds with millisecond
+  precision (e.g. `2026-11-14T10:00:00.000Z`). If the caller did not give a
+  window, omit them: the tool then scans the whole transcript and returns the
+  most recent ERR/WARN lines. Never invent a window yourself.
 
 ## Step 1 — Topology first
 
@@ -33,7 +35,8 @@ For **every** node in the topology graph:
 - `.claude/agents/config-auditor.md` (`config-auditor`) — owns `check_os_resources`
   for that node; returns disk/memory/kernel-alert state. Read-only.
 
-Both run per-node, in parallel, with the same `since`/`until` window.
+Both run per-node, in parallel, with the same `since`/`until` window — or both
+unbounded when the caller gave no window.
 
 **Severity gate (critical):** the severity filter is inclusive — `severity="INFO"`
 drops every WARN/ERROR line, which is exactly where anomalies live. Always dispatch

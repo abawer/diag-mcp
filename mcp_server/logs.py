@@ -55,14 +55,21 @@ def _load_all() -> list[LogLine]:
 
 def fetch_service_logs(
     service: str,
-    since: str,
-    until: str,
+    since: str | None = None,
+    until: str | None = None,
     severity: str = "WARN",
     regex_filter: str | None = None,
     limit: int = 200,
 ) -> list[LogLine]:
-    """Return filtered logs for one service within a UTC window."""
-    since_dt, until_dt = _parse_ts(since), _parse_ts(until)
+    """Return filtered logs for one service within a UTC window.
+
+    `since`/`until` are optional. If either is omitted, no time bound is
+    applied on that side and the window covers the whole transcript, so the
+    caller finds the most recent ERR/WARN lines without knowing when the
+    incident started.
+    """
+    since_dt = _parse_ts(since) if since else None
+    until_dt = _parse_ts(until) if until else None
     min_sev = SEVERITY_ORDER[severity.upper()]
     pattern = re.compile(regex_filter) if regex_filter else None
 
@@ -71,7 +78,9 @@ def fetch_service_logs(
         if entry.service != service:
             continue
         ts = _parse_ts(entry.timestamp)
-        if ts < since_dt or ts > until_dt:
+        if since_dt and ts < since_dt:
+            continue
+        if until_dt and ts > until_dt:
             continue
         if SEVERITY_ORDER[entry.level.upper()] < min_sev:
             continue

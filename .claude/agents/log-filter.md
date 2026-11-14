@@ -11,14 +11,18 @@ context-compression layer: raw noise never reaches the RCA engine.
 
 ## Input
 
-`service`, `since`, `until` (UTC ISO-8601, millisecond precision). If the caller does
-not pass a severity, use `severity="WARN"` — never INFO as a starting point.
+`service`, and optionally `since` / `until` (UTC ISO-8601, millisecond precision).
+If the caller gave no window, omit the bounds entirely — the tool then scans the
+whole transcript and surfaces the most recent ERR/WARN lines; never invent a
+window yourself. If the caller does not pass a severity, use `severity="WARN"` —
+never INFO as a starting point.
 
 ## Do
 
-1. Call `fetch_service_logs(service, since, until, severity="WARN")` — anomalies live
-   at WARN and above. The severity gate is inclusive, so INFO would drop every
-   WARN/ERROR line and return an empty `kept` list even on a node that is failing.
+1. Call `fetch_service_logs(service, since=?, until=?, severity="WARN")` — anomalies
+   live at WARN and above. The severity gate is inclusive, so INFO would drop
+   every WARN/ERROR line and return an empty `kept` list even on a node that is
+   failing.
 2. Only if WARN returns nothing, re-call with `severity="INFO"` to pick up
    boundary-establishing INFO lines (deploy, restart, health check).
 3. If the result is large, re-call with a `regex_filter` targeting the anomaly

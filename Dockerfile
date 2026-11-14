@@ -7,9 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY mcp_server/ ./mcp_server/
 COPY demo_data/ ./demo_data/
-COPY topology.yaml ./topology.yaml
 
-ENV TOPOLOGY_PATH=/app/demo_data/topology.yaml \
+ENV TOPOLOGY_PATH=/app/demo_data/topology.json \
     LOGS_PATH=/app/demo_data/logs.jsonl \
     OS_PATH=/app/demo_data/os.json \
     DIAG_MCP_MODEL=claude-sonnet-5-5
